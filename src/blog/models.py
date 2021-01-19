@@ -25,13 +25,13 @@ class BlogPost(models.Model):
         return self.title
     
     def comment_count(self):
-        return self.comment_set.all().count()
+        return self.postcomment_set.all().count()
 
     def view_count(self):
         return self.postview_set.all().count()
 
     def like_count(self):
-        return self.like_set.all().count()
+        return self.postlike_set.all().count()
     
     def comments(self):
         return self.comment_set.all()
