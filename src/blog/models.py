@@ -12,7 +12,7 @@ class BlogPost(models.Model):
     )
     title = models.CharField(max_length=200)
     content = models.TextField()
-    image = models.URLField(default='https://picsum.photos/200/300.jpg')
+    image = models.URLField(max_length=5000, blank=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     create_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -24,15 +24,17 @@ class BlogPost(models.Model):
     def __str__(self):
         return self.title
     
+    @property
     def comment_count(self):
         return self.postcomment_set.all().count()
 
+    @property
     def view_count(self):
         return self.postview_set.all().count()
-
+    @property
     def like_count(self):
         return self.postlike_set.all().count()
-    
+    @property
     def comments(self):
         return self.postcomment_set.all()
     
@@ -47,8 +49,8 @@ class PostComment(models.Model):
     
     
 class PostLike(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, related_name="postlike", on_delete=models.CASCADE)
+    post = models.ForeignKey(BlogPost, related_name="postlike", on_delete=models.CASCADE)
     
     def __str__(self):
         return self.author.username

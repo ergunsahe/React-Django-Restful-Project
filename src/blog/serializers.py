@@ -5,10 +5,7 @@ from .models import BlogPost, PostComment, PostLike
 
 
 
-class LikeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PostLike
-        fields = ("author", "post")
+
     
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -20,7 +17,8 @@ class CommentSerializer(serializers.ModelSerializer):
         
         
 class CommentCreateSerializer(serializers.Serializer):
-    content = serializers.TimeField()
+    content = serializers.CharField()
+    author = serializers.CharField( source="author.username", read_only=True)
     class Meta:
         model = PostComment
         fields = ( "content", "post", "author")
@@ -42,6 +40,15 @@ class BlogPostListSerializer(serializers.ModelSerializer):
         model = BlogPost
         fields = ("url",  "id", "title", "content", "image", "status", 'author', 'comment_count', 'view_count', 'like_count', 'comments')
         read_only_fields = ['author', "create_date", "update_date","slug"]
+        
+        
+        
+class LikeSerializer(serializers.ModelSerializer):
+    # post =serializers.SlugField(source="post.slug", read_only=True)
+    author = serializers.CharField( source="author.username", read_only=True)
+    class Meta:
+        model = PostLike
+        fields = ("author", "post")
 class BlogPostCreateSerializer(serializers.ModelSerializer):
     
     author = serializers.CharField( source="author.username", read_only=True)
