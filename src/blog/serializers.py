@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import fields, serializers
 from .models import BlogPost, PostComment, PostLike
+from django.http import request
 
 
 
@@ -9,19 +10,21 @@ from .models import BlogPost, PostComment, PostLike
     
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.CharField( source="author.username", read_only=True)
+    # author = serializers.CharField( source="author.username", read_only=True)
+    author= serializers.StringRelatedField()
+    post= serializers.StringRelatedField()
     class Meta:
         model = PostComment
-        fields = ( "content",  "author",)
+        fields = ('id', "content",  "author", 'post', 'create_date')
         read_only_fields = ["post","create_date"]
         
         
-class CommentCreateSerializer(serializers.Serializer):
-    content = serializers.CharField()
-    author = serializers.CharField( source="author.username", read_only=True)
+class CommentCreateSerializer(serializers.ModelSerializer):
+    # content = serializers.CharField()
+    # author = serializers.CharField( source="author.username", read_only=True)
     class Meta:
         model = PostComment
-        fields = ( "content", "post", "author")
+        fields = ( "content",)
         read_only_fields = ["post","author"]
         
         
@@ -33,13 +36,17 @@ class BlogPostListSerializer(serializers.ModelSerializer):
         lookup_field = 'slug',
         
     )
-    author = serializers.CharField( source="author.username", read_only=True)
-    comments = CommentSerializer(many=True)
+    # author = serializers.CharField( source="author.username", read_only=True)
+    author = serializers.SerializerMethodField()
+    # comments = CommentSerializer(many=True)
     
     class Meta:
         model = BlogPost
-        fields = ("url",  "id", "title", "content", "image", "status", 'author', 'comment_count', 'view_count', 'like_count', 'comments')
-        read_only_fields = ['author', "create_date", "update_date","slug"]
+        fields = ("url",  "id", "title", "content", "image", "status", 'author', 'view_count','slug','comment_count',"like_count")
+        # read_only_fields = ['author', "create_date", "update_date","slug"]
+        
+    def get_author(self, obj):
+        return obj.author.username
         
         
         
