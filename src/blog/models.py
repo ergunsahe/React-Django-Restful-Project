@@ -26,14 +26,16 @@ class BlogPost(models.Model):
     
     @property
     def comment_count(self):
-        return self.postcomment_set.all().count()
+        return self.postcomment_set.count()
 
     @property
     def view_count(self):
-        return self.postview_set.all().count()
+        return self.postview_set.count()
+    
     @property
     def like_count(self):
-        return self.postlike_set.all().count()
+        return self.postlike_set.count()
+    
     @property
     def comments(self):
         return self.postcomment_set.all()
@@ -49,8 +51,8 @@ class PostComment(models.Model):
     
     
 class PostLike(models.Model):
-    author = models.ForeignKey(User, related_name="postlike", on_delete=models.CASCADE)
-    post = models.ForeignKey(BlogPost, related_name="postlike", on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(BlogPost,  on_delete=models.CASCADE)
     
     def __str__(self):
         return self.author.username
