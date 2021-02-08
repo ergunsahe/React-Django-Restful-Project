@@ -18,4 +18,4 @@ class Profile(models.Model):
     bio = models.TextField(blank=True)
     
     def __str__(self):
-        return "{} {}".format(self.user.username, "Profile")
+        return "{} {}".format(self.user, "Profile")
