@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404
 from rest_framework import generics
-from .serializers import BlogPostListSerializer, BlogPostCreateUpdateSerializer, CommentCreateSerializer, CommentSerializer, BlogPostDetailSerializer,
+from .serializers import BlogPostListSerializer, BlogPostCreateUpdateSerializer, CommentCreateSerializer, BlogPostDetailSerializer
 from .models import BlogPost, PostComment, PostLike, PostView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -50,7 +50,7 @@ class BlogPostDetailView(generics.RetrieveAPIView):
     
     def get_object(self):
         obj = super().get_object()
-        PostView.objects.get_or_create(user=self.request.user, post=obj)
+        PostView.objects.get_or_create(author=self.request.user, post=obj)
         return obj
     
 
@@ -61,7 +61,7 @@ class BlogPostUpdateView(generics.RetrieveUpdateAPIView):
     lookup_field = "slug"
     
     def perform_update(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(author=self.request.user)
         
 class BlogPostDeleteView(generics.DestroyAPIView):
     serializer_class = BlogPostDetailSerializer

@@ -29,8 +29,8 @@ class CommentCreateSerializer(serializers.ModelSerializer):
         
 class BlogPostDetailSerializer(serializers.ModelSerializer):
     # author = serializers.CharField( source="author.username", read_only=True)
-    author = serializers.SerializerMethodField()
     status = serializers.ChoiceField(choices=BlogPost.OPTIONS)
+    author = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
     # like= LikeSerializer(many=True)
     comments = CommentSerializer(many=True)
@@ -81,22 +81,22 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
             )
         # read_only_fields = ['author', "create_date", "update_date","slug"]   
         
-        def get_author(self, obj):
-            return obj.author.username
+    def get_author(self, obj):
+        return obj.author.username
         
-        def get_owner(self,obj):
-            request= self.context['request']
-            if request.user.is_authenticated:
-                if obj.author == request.user:
-                    return True
-                return False
+    def get_owner(self,obj):
+        request= self.context['request']
+        if request.user.is_authenticated:
+            if obj.author == request.user:
+                return True
+            return False
             
-        def get_has_liked(self, obj):
-            request=self.context['request']
-            if request.user.is_authenticated:
-                if BlogPost.objects.filter(Q(like_user=request.user) & Q(like_post=obj)).exists():
-                    return True
-                return False     
+    def get_has_liked(self, obj):
+        request=self.context['request']
+        if request.user.is_authenticated:
+            if BlogPost.objects.filter(Q(postlike__author=request.user) & Q(postlike__post=obj)).exists():
+                return True
+            return False     
         
 class BlogPostListSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
