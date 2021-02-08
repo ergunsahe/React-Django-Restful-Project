@@ -1,24 +1,28 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404
 from rest_framework import generics
-from .serializers import BlogPostListSerializer, BlogPostCreateSerializer, CommentSerializer, BlogPostDetailSerializer, BlogPostUpdateSerializer, LikeSerializer
-from .models import BlogPost, PostComment, PostLike
-from .pagination import BlogPagination
+from .serializers import BlogPostListSerializer, BlogPostCreateUpdateSerializer, CommentCreateSerializer, BlogPostDetailSerializer
+from .models import BlogPost, PostComment, PostLike, PostView
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework.views import APIView
+from rest_framework import status
+from .pagination import BlogPostPagePagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .permissions import IsOwner
 
 # Create your views here.
 
 class BlogPostList(generics.ListAPIView):
+    permission_classes = [AllowAny]
     serializer_class = BlogPostListSerializer  
     queryset = BlogPost.objects.filter(status='p')
-    pagination_class = BlogPagination
-    permission_classes = [AllowAny]
+    pagination_class = BlogPostPagePagination
     
     
 class BlogUserPostList(generics.ListAPIView):
     serializer_class = BlogPostListSerializer  
-    pagination_class = BlogPagination
+    pagination_class = BlogPostPagePagination
     permission_classes = [IsAuthenticated, IsOwner]
     # queryset = BlogPost.objects.filter(author=request.user)
     
@@ -28,7 +32,7 @@ class BlogUserPostList(generics.ListAPIView):
     
     
 class BlogPostCreateView(generics.CreateAPIView):
-    serializer_class = BlogPostCreateSerializer  
+    serializer_class = BlogPostCreateUpdateSerializer  
     permission_classes = [IsAuthenticated]
     queryset = BlogPost.objects.all()
     
@@ -38,61 +42,70 @@ class BlogPostCreateView(generics.CreateAPIView):
         
     
         
-class BlogPostRetrieveView(generics.RetrieveAPIView):
+class BlogPostDetailView(generics.RetrieveAPIView):
     serializer_class = BlogPostDetailSerializer
     queryset = BlogPost.objects.all()
     permission_classes = [IsAuthenticated]
     lookup_field = "slug"
     
+    def get_object(self):
+        obj = super().get_object()
+        PostView.objects.get_or_create(author=self.request.user, post=obj)
+        return obj
+    
 
-class BlogPostUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = BlogPostUpdateSerializer
+class BlogPostUpdateView(generics.RetrieveUpdateAPIView):
+    serializer_class = BlogPostCreateUpdateSerializer
     queryset = BlogPost.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwner]
     lookup_field = "slug"
     
-
-class PostCommentCreateView(generics.ListCreateAPIView):
-    serializer_class = CommentSerializer
-    queryset = PostComment.objects.all()
-    permission_classes = [IsAuthenticated]
-    lookup_field = "post"
+    def perform_update(self, serializer):
+        serializer.save(author=self.request.user)
+        
+class BlogPostDeleteView(generics.DestroyAPIView):
+    serializer_class = BlogPostDetailSerializer
+    queryset = BlogPost.objects.all()
+    permission_classes = [IsAuthenticated, IsOwner]
+    lookup_field = "slug"
     
-class PostLikeCreateView(generics.ListCreateAPIView):
-    serializer_class = LikeSerializer
-    permission_classes = [IsAuthenticated]
-    queryset = PostLike.objects.all().select_related('postlike')
-    
-    # def get_queryset(self):
-    #     queryset = PostLike.objects.all()
-    #     post = BlogPost.objects.all()
-    #     slug= self.kwargs["slug"]
-    #     post = post.filter(blogpost__slug= slug)
-    #     queryset = queryset.filter(post =post)
-    #     return queryset
-    
-    
-    
-    
-    # def perform_create(self, serializer):
-    #     serializer.save(author=self.request.user)
-    
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     queryset= User.objects.filter(__username=user)
-    #     return queryset
-    
+   
         
         
-    # def get_object(self):
-    #     queryset = self.get_queryset()
-    #     filter = {}
-    #     for field in self.multiple_lookup_fields:
-    #         filter["id"] = self.kwargs["id"]
+    
 
-    #     obj = get_object_or_404(queryset, **filter)
-    #     self.check_object_permissions(self.request, obj)
-    #     return obj
+class PostCommentCreateView(APIView):
+    serializer_class = CommentCreateSerializer
+    permission_classes = [IsAuthenticated]
+    # queryset = PostComment.objects.all()
+    
+    def post(self, request, slug):
+        post= get_object_or_404(BlogPost, slug=slug)
+        serializer= CommentCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(author=request.user, post=post)
+            return Response(serializer.data, status=200)
+        else:
+            return Response({'errors': serializer.errors}, status=400)
+    
+class PostLikeCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, slug):
+        obj = get_object_or_404(BlogPost, slug=slug)
+        like_qs = PostLike.objects.filter(author=request.user, post=obj)
+        
+        if like_qs.exists():
+            like_qs[0].delete()
+        else:
+            PostLike.objects.create(author=request.user, post=obj)
+            
+        
+        data = {
+            'messages': 'like'
+        }
+        
+        return Response(data)
     
     
     

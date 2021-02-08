@@ -19,6 +19,9 @@ class BlogPost(models.Model):
     status = models.CharField(max_length=10, choices=OPTIONS, default='d')
     slug = models.SlugField(blank=True, unique=True)
     
+    class Meta:
+        ordering = ['-create_date']
+    
        
     
     def __str__(self):
@@ -45,6 +48,9 @@ class PostComment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     create_date = models.DateTimeField(auto_now_add=True)
     post = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
+    
+    class Meta:
+        ordering = ['-create_date']
     
     def __str__(self):
         return self.author.username
