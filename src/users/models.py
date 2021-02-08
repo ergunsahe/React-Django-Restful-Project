@@ -14,8 +14,8 @@ class Profile(models.Model):
     country = models.CharField(blank= True, max_length=200)
     address = models.CharField(blank= True, max_length=200)
     phone = models.CharField(blank= True, max_length=200)
-    image = models.ImageField(upload_to=user_profile_path, default="avatar.png")
+    image = models.URLField(max_length=5000, default="avatar.png")
     bio = models.TextField(blank=True)
     
     def __str__(self):
-        return "{} {}".format(self.user, "Profile")
+        return "{} {}".format(self.user.username, "Profile")

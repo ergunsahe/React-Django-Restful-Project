@@ -4,6 +4,15 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from .models import Profile
 
+
+
+class UserSerializer(serializers.ModelSerializer):
+    model=User
+    fields= (
+        "username",
+        "email"
+    )
+
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     
@@ -36,7 +45,20 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     
 class ProfileSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
     class Meta:
         model = Profile
-        fields = ("first_name", "last_name", "country", "address", "phone", "image", "bio")
+        fields = ("user","first_name", "last_name", "country", "address", "phone", "image", "bio")
         read_only_fields = ["id", "user",]
+        
+
+# class ProfileListSerializer(serializers.ModelSerializer):
+#     profile = ProfileSerializer(many=True)
+
+#     class Meta:
+#         model = User
+#         fields = (
+#             "username",
+#             "email",
+#             "profile"
+#         )
