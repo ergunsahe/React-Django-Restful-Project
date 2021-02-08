@@ -104,8 +104,8 @@ class BlogPostListSerializer(serializers.ModelSerializer):
         lookup_field = 'slug',
         
     )
-    # author = serializers.CharField( source="author.username", read_only=True)
     author = serializers.SerializerMethodField()
+    # author = serializers.CharField( source="author.username", read_only=True)
     # comments = CommentSerializer(many=True)
     
     class Meta:
@@ -118,6 +118,7 @@ class BlogPostListSerializer(serializers.ModelSerializer):
             "image", 
             "status", 
             'author', 
+            'create_date',
             'view_count',
             'slug',
             'comment_count',
@@ -132,7 +133,7 @@ class BlogPostListSerializer(serializers.ModelSerializer):
 
         
         
-class BlogPostCreateSerializer(serializers.ModelSerializer):
+class BlogPostCreateUpdateSerializer(serializers.ModelSerializer):
     # author = serializers.CharField( source="author.username", read_only=True)
     owner = serializers.SerializerMethodField(read_only=True)
     
